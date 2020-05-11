@@ -1,0 +1,213 @@
+/*
+ * Extended interface of queues
+ *
+ * 15-122 Principles of Imperative Computation
+ */
+
+
+/************************/
+/*** Client interface ***/
+/************************/
+
+typedef void print_data_fn(void* x);            // may be useful for debugging
+typedef bool check_property_fn(void* x);
+typedef void* iterate_fn(void* accum, void* x);
+
+
+/**********************/
+/*** Implementation ***/
+/**********************/
+
+typedef struct list_node list;
+struct list_node {
+  void* data;
+  list* next;
+};
+
+typedef struct queue_header queue;
+struct queue_header {
+  list* front;
+  list* back;
+  int size;
+};
+
+bool is_inclusive_segment(list* start, list* end, int i) {
+  /* FIX ME */
+  if (start == NULL && i == 0) return true;
+  else if (i != 0 && start == NULL) return false;
+  return is_inclusive_segment(start->next, end, i-1);
+}
+
+bool is_acyclic(list* start) {
+  if (start == NULL) return true;
+  list* h = start->next;         
+  list* t = start;               
+  while (h != t) {
+    if (h == NULL || h->next == NULL) return true;
+    h = h->next->next;
+    //@assert t != NULL;
+    t = t->next;
+  }
+  //@assert h == t;
+  return false;
+}
+
+bool is_queue(queue* Q) {
+  /* FIX ME */
+  return Q != NULL && is_inclusive_segment(Q->front, Q->back, Q->size)
+  && is_acyclic(Q->front);
+}
+
+void print_queue(queue* Q, print_data_fn* print_data) {
+  /* OPTIONAL (but recommended) */
+  return;
+}
+
+/* Other functions go there */
+
+queue* queue_new()
+//@ensures is_queue(\result);
+{
+  queue* Q = alloc(queue);
+  Q->size = 0;
+  return Q;
+}
+
+int queue_size(queue* Q)
+//@requires Q != NULL && is_queue(Q);
+//@ensures \result >= 0;
+{
+  return Q->size;
+}
+
+void enq(queue* Q, void* x)
+//@requires Q != NULL && is_queue(Q);
+//@ensures is_queue(Q);
+{
+  list* y = alloc(list);
+  y->data = x;
+  if (queue_size(Q) == 0)
+  {
+    Q->front = y;
+    Q->back = y;
+  }
+  else
+  {
+    Q->back->next = y;
+    Q->back = y;
+  }
+  Q->size++;
+}
+
+void* deq(queue* Q)
+//@requires Q != NULL && queue_size(Q) > 0 && is_queue(Q);
+//@ensures is_queue(Q);
+{
+  void* res = Q->front->data;
+  Q->front = Q->front->next;
+  Q->size = Q->size - 1;
+  return res;
+}
+
+void* queue_peek(queue* Q, int i)
+//@requires Q!= NULL && 0 <= i && i < queue_size(Q) && is_queue(Q);
+{
+  list* start = Q->front;
+  if (i == 0) return Q->front->data;
+  if (queue_size(Q) == 0) return NULL;
+  for (int j = 0; j < i; j++)
+  {
+    start = start->next;
+  }
+  return start->data;
+}
+
+void queue_reverse(queue* Q)
+//@requires Q != NULL && is_queue(Q);
+//@ensures is_queue(Q);
+{
+  list* head = Q->front;
+  list* prev = NULL;
+  list* curr = Q->front;
+  list* next = NULL;
+
+  while (curr != NULL)
+  {
+    next = curr->next;
+    curr->next = prev;
+    prev = curr;
+    curr = next;
+  }
+  
+  Q->front = prev;
+  Q->back = head;
+}
+
+bool queue_all(queue* Q, check_property_fn* P)
+//@requires Q != NULL && is_queue(Q) && P != NULL;
+{
+  if (queue_size(Q) == 0) return true;
+  for (int i = 0; i < queue_size(Q); i++)
+  {
+    if ((*P)(queue_peek(Q,i)) == false) return false;
+  }
+  return true;
+}
+
+void* queue_iterate(queue* Q, void* base, iterate_fn* F)
+//@requires Q != NULL && F != NULL && is_queue(Q);
+{
+  if (Q->size == 0) return base;
+  list* curr = Q->front;
+  void* tmp = base;
+  while (curr != Q->back)
+  {
+    tmp = (*F) (tmp, curr->data);
+    curr = curr->next;
+  }
+  tmp = (*F) (tmp, curr->data);
+  return tmp;
+}
+
+// Client type
+typedef queue* queue_t;
+
+
+/*************************/
+/*** Library interface ***/
+/*************************/
+
+// typedef ______* queue_t;
+
+/* O(1) */
+queue_t queue_new()
+  /*@ensures \result != NULL; @*/ ;
+
+/* O(1) */
+int queue_size(queue_t Q)
+  /*@requires Q != NULL; @*/
+  /*@ensures \result >= 0; @*/ ;
+
+/* O(1) -- adds an item to the back of the queue */
+void enq(queue_t Q, void* x)
+  /*@requires Q != NULL; @*/ ;
+
+/* O(1) -- removes an item from the front of the queue */
+void* deq(queue_t Q)
+  /*@requires Q != NULL && queue_size(Q) > 0; @*/ ;
+
+/* O(i) -- doesn't remove the item from the queue */
+void* queue_peek(queue_t Q, int i)
+  /*@requires Q != NULL && 0 <= i && i < queue_size(Q); @*/ ;
+
+/* O(n) */
+void queue_reverse(queue_t Q)
+  /*@requires Q != NULL; @*/ ;
+
+/* O(n) worst case, assuming P is O(1) */
+bool queue_all(queue_t Q, check_property_fn* P)
+  /*@requires Q != NULL && P != NULL; @*/ ;
+
+/* O(n) worst case, assuming F is O(1) */
+void* queue_iterate(queue_t Q, void* base, iterate_fn* F)
+  /*@requires Q != NULL && F != NULL; @*/ ;

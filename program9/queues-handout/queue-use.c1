@@ -1,0 +1,61 @@
+bool even(void* x)
+//@requires \hastag(int*, x) || x == NULL;
+{
+  if ((int*) x == NULL) return false;
+  return (*(int*) x % 2 == 0 && *(int*) x >= 0);
+}
+
+bool odd(void* x)
+//@requires \hastag(int*, x) || x == NULL;
+{
+  if ((int*) x == NULL) return true;
+  return (*(int*) x % 2 != 0 && *(int*) x >= 0);
+}
+
+bool incr(void* x)
+//@requires \hastag(int*, x) || x == NULL;
+{
+  if ((int*) x == NULL) return true;
+  int* i = (int*)x;
+  (*i)++;
+  return true;
+}
+
+void* find_negative(void* base, void* x)
+//@requires \hastag(int*, x) || x == NULL;
+//@requires \hastag(int*, base) || base == NULL;
+//@ensures \hastag(int*, \result);
+{
+  if ((int*) x == NULL && (int*) base == NULL) return NULL;
+  else if ((int*) base != NULL) return base;
+  else if (*(int*) x < 0) return x;
+  else return NULL;
+}
+
+void* copy(void* Q, void* x)
+//@requires \hastag(queue_t, Q);
+//@requires \hastag(int*, x);
+//@ensures \hastag(queue_t, \result);
+{
+  enq((queue_t)Q, x);
+  return Q;
+}
+
+void* insert(void* x, void* y)
+//@requires \hastag(int*, x) && x != NULL;
+//@requires \hastag(int*, y) && y != NULL;
+//@ensures \hastag(int*, \result);
+{
+  int x_star = *(int*) x;
+  int y_star = *(int*) y;
+  int* x_ptr = (int*) x;
+  int* y_ptr = (int*) y;
+  if (*(int*) x < *(int*) y)
+  {
+    *(x_ptr) = y_star;
+    *(y_ptr) = x_star;
+    x = (void*) x_ptr;
+    y = (void*) y_ptr;
+  }
+  return x;
+}

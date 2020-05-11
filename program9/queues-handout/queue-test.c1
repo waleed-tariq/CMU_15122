@@ -1,0 +1,90 @@
+#use <conio>
+
+// You are welcome to define helper functions for your tests
+
+int main() {
+  // Create a few queues
+  
+  queue_t Q = queue_new();
+  int* p1 = alloc(int);
+  *p1 = 8;
+  int* p2 = alloc(int);
+  *p2 = 50;
+  int* p3  = alloc(int);
+  *p3 = 22;
+  int* p4  = alloc(int);
+  *p4 = 37;
+  int* p5  = alloc(int);
+  *p5 = 72;
+  enq(Q, (void*)p1);
+  enq(Q, (void*)p2);
+  enq(Q, (void*)p3);
+  enq(Q, (void*)p4);
+  enq(Q, (void*)p5);
+
+  queue_reverse(Q);
+  printint(*(int*) Q->back->data);
+
+  int size = queue_size(Q);
+  printint(size);
+  print("\n");
+
+  void* head = deq(Q);
+  printint(*(int*) head);
+  print("\n");
+  printint(Q->size);
+  print("\n");
+
+  void* peek = queue_peek(Q, 1);
+  printint(*(int*) peek);
+  print("\n");
+  printint(Q->size);
+  print("\ntesting new things out\n");
+
+  bool even = queue_all(Q, &even);
+  printbool(even);
+  print("\n");
+
+  bool odd = queue_all(Q, &odd);
+  printbool(odd);
+  print("\n");
+
+  bool incr = queue_all(Q, &incr);
+  printbool(incr);
+  print("\n");
+  printint(*(int*) Q->front->data);
+  print("\n");
+
+  void* neg = queue_iterate(Q,NULL,&find_negative);
+  if (neg == NULL) print("hello\n");
+  else print("nope\n");
+
+  void* copy = queue_iterate(Q, (void*)queue_new(), &copy);
+  queue_t coppy = (queue_t) copy;
+  print("this is the first item of my copied queue\n");
+  printint(*(int*) coppy->front->data);
+  print("\n");
+  print("this is my second item on my copied queue\n");
+  printint(*(int*) coppy->front->next->data);
+  print("\n");
+  print("testing the insert function\n");
+
+  queue_t R = queue_new();
+  while (queue_size(Q) > 0) {
+    int* q1 = alloc(int);
+    void* q2 = deq(Q);
+    //@assert q2 != NULL && \hastag(int*, q2);
+    *q1 = *(int*)q2;
+    queue_iterate(R, (void*)q1, &insert);
+    enq(R,(void*)q1);
+  }
+  print("this is the first item in my queue\n");
+  printint(*(int*) R->front->data);
+
+  // Using them, test the functions you wrote in file queue.c1
+
+
+
+  println("\nAll tests passed!");
+  return 0;
+}
