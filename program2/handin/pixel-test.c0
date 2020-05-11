@@ -1,0 +1,37 @@
+#use <util>
+#use <conio>
+
+// You are welcome to define helper functions for your tests
+
+int main() {
+  // Run some edge cases (check for contract errors only)
+
+
+  // Test some regular cases (check for contract errors & exploits)
+
+  assert(get_alpha(0xFF000000) == 0xFF);
+  assert(get_alpha(0x24000000) == 0x24);
+  assert(get_alpha(0x99000011) == 0x99);
+  assert(get_alpha(0x88114432) == 0x88);
+
+  assert(get_red(0x00FF0000) == 0xFF);
+  assert(get_red(0x00F00000) == 0xF0);
+  assert(get_red(0xFFF8FFFF) == 0xF8);
+  assert(get_red(0x83415318) == 0x41);
+
+  assert(get_green(0x0000FF00) == 0xFF);
+  assert(get_green(0x11113211) == 0x32);
+  assert(get_green(0x34982376) == 0x23);
+  assert(get_green(0x24812480) == 0x24);
+
+  assert(get_blue(0x000000FF) == 0xFF);
+  assert(get_blue(0x0000000F) == 0x0F);
+  assert(get_blue(0x12345678) == 0x78);
+  assert(get_blue(0x22334455) == 0x55);
+
+  assert(make_pixel(1, 1, 1, 1) == 0x01010101);
+  assert(make_pixel(0xC4, 0xFF, 0x22, 0xAB) == 0xC4FF22AB);
+
+  println("All tests passed!");
+  return 0;
+}
