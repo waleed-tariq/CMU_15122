@@ -1,0 +1,82 @@
+#use <conio>
+#use <util>
+
+// You are welcome to define helper functions for your tests
+
+int main() {
+  // Create a few ropes
+  rope_t R = rope_new("waleed");
+  rope_t S = rope_new("tariq");
+  // Using them, test the functions you wrote in file rope.c1
+  int length = rope_length(R);
+  assert(length == 6);
+  print("\n");
+  printint(length);
+  print("\n");
+  char c = rope_charat(R, 0);
+  assert(c == 'w');
+  int length2 = rope_length(S);
+  assert(length2 == 5);
+
+  rope_t join = rope_join(R, S);
+  assert(rope_length(join) == (length+length2));
+
+  string name = rope_tostring(join);
+  assert(string_equal(name, "waleedtariq"));
+  println(name);
+  print("\n");
+  bool leaf = is_leaf(R);
+  assert(leaf == true);
+
+  int length3 = rope_length(join->right);
+  printint(length3);
+  println("\nwelcome");
+
+  rope_t sub = rope_sub(join, 4, 10);
+  string subb = rope_tostring(sub);
+  print(subb);
+  print("\n");
+
+  rope_t t = rope_new("t");
+  rope_t otally = rope_new("otally");
+  rope_t efficien = rope_new("efficien");
+  rope_t t2 = rope_new("t");
+
+  rope_t totally = rope_join(t, otally);
+  rope_t efficient = rope_join(efficien, t2);
+  rope_t totally_efficient = rope_join(totally,efficient);
+
+  rope_t sub2 = rope_sub(totally_efficient, 0, 16);
+  string sbu2 = rope_tostring(sub2);
+  print(sbu2);
+  print("\n");
+
+  rope_t sub3 = rope_sub(totally_efficient, 2, 11);
+  string sbu3 = rope_tostring(sub3);
+  print(sbu3);
+  print("\n");
+
+  rope_t sub4 = rope_sub(totally_efficient, 7, 16);
+  string sbu4 = rope_tostring(sub4);
+  print(sbu4);
+  print("\n");
+
+  rope_t abracadabra = rope_join(rope_join(rope_new("ab"),rope_new("ra")),rope_join(rope_join(rope_new("cad"),rope_new("ab")),rope_new("ra")));
+
+  rope_t[] A = alloc_array(rope_t, 3);
+
+  A[0] = rope_join(rope_new("a"),rope_new("br"));
+  A[1] = rope_join(rope_new("abr"),rope_new("a"));
+  A[2] = rope_join(rope_new("a"),rope_join(rope_new("br"),rope_new("a")));
+
+  rope_reduce(A,3);
+
+  print(rope_tostring(A[0]));
+  print("\n");
+  print(rope_tostring(A[1]));
+  print("\n");
+  print(rope_tostring(A[2]));
+
+  println("\nAll tests passed!");
+  return 0;
+}
