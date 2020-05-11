@@ -1,0 +1,179 @@
+/* Assumes that pixel is already defined to be an int (pixel.c0) */
+/* typedef int pixel; */
+
+#use <util>
+
+// Declaring the functions at top of file
+pixel_t[] rotate(pixel_t[] pixels, int width, int height);
+pixel_t[] rotate_image(pixel_t[] image, int width, int height, int degrees);
+void copy_image(pixel_t[] orig, int orig_width, int orig_height,
+                pixel_t[] copy, int copy_width, int copy_height,
+                int row, int col);
+int rotate_index(int i, int width, int height, int degrees);
+pixel clone_pixel(pixel p);
+bool pixel_equal(pixel p, pixel q);
+bool is_sub_image(pixel_t[] orig, int orig_width, int orig_height,
+                  pixel_t[] copy, int copy_width, int copy_height,
+                  int row, int col);
+
+
+// Function that will use all other functions to return final image
+pixel_t[] rotate(pixel_t[] pixels, int width, int height)
+//@requires is_valid_imagesize(width, height);
+//@requires width == height;
+//@requires \length(pixels) == width * height;
+//@ensures \result != pixels;
+//@ensures \length(\result) == \length(pixels) * 4;
+{
+  int size = width * 2;
+  pixel_t[] image = alloc_array(pixel, size * size);
+  pixel_t[] rotated_90 = rotate_image(pixels, width, height, 90);
+  copy_image(rotated_90, height, width, image, size, size, 0, 0);
+  pixel_t[] rotated_180 = rotate_image(pixels, width, height, 180);
+  copy_image(rotated_180, height, width, image, size, size, width, 0);
+  pixel_t[] rotated_270 = rotate_image(pixels, width, height, 270);
+  copy_image(rotated_270, height, width,
+             image, size, size, height, width);
+  pixel_t[] rotated_360 = rotate_image(pixels, width, height, 360);
+  copy_image(rotated_360, height, width,
+             image, size, size, 0, height);
+  return image;
+}
+
+// This function will individually rotate the image
+// Creates new array of pixels whcih will hold the rotated
+// indices of the original
+pixel_t[] rotate_image(pixel_t[] image, int width, int height, int degrees)
+//@requires is_valid_imagesize(width, height);
+//@requires \length(image) == width * height;
+//@requires 0 <= degrees &&  degrees % 90 == 0;
+//@ensures \length(\result) == \length(image);
+//@ensures \result != image;
+{
+  pixel_t[] image_rotated = alloc_array(pixel, width * height);
+  for(int i = 0; i < width * height; i++)
+    //@loop_invariant 0 <= i;
+    {
+      int index_rotated = rotate_index(i, width, height, degrees);
+      image_rotated[index_rotated] = clone_pixel(image[i]);
+    }
+  return image_rotated;
+}
+
+// This function will return the index of the pixel after it is 
+// rotated from the image
+// Uses if statements to check how much the rotation degrees are
+// in order to decide how much to rotate the index
+// Simplified the degrees by dividing by 90 and taking the mod at 4
+// which I denoted as the shift
+int rotate_index(int i, int width, int height, int degrees)
+//@requires is_valid_imagesize(width, height);
+//@requires 0 <= i && i < width * height;
+//@requires (0 <= degrees) && (degrees % 90 == 0);
+//@ensures 0 <= \result && \result <= width * height;
+{
+  int row = get_row(i, width, height);
+  int col = get_column(i, width, height);
+  int shift = degrees / 90 % 4;
+  if(shift == 0) {
+    return i;
+  }
+  else if(shift == 1) {
+    int row_rotated = width - 1 - col;
+    int col_rotated = row;
+    return get_index(row_rotated, col_rotated, height, width);
+  }
+  else if(shift == 2) {
+    int row_rotated = height - 1 - row;
+    int col_rotated = width - 1 - col;
+    return get_index(row_rotated, col_rotated, width, height);
+  }
+  else {
+    //@assert shift == 3;
+    int row_rotated = col;
+    int col_rotated = height - 1 - row;
+    return get_index(row_rotated, col_rotated, height, width);
+  }
+}
+
+// This function will copy the original image into a new array
+// Uses two for loops to take from the original image matrix and put it
+// into the copied image
+void copy_image(pixel_t[] orig, int orig_width, int orig_height,
+                pixel_t[] copy, int copy_width, int copy_height,
+                int row, int col)
+//@requires is_valid_imagesize(orig_width, orig_height);
+//@requires is_valid_imagesize(copy_width, copy_height);
+//@requires is_valid_pixel(row, col, copy_width, copy_height);
+//@requires 0 <= row && 0 <= col;
+//@requires \length(orig) == orig_width * orig_height;
+//@requires \length(copy) == copy_width * copy_height;
+/*@requires (row + orig_height <= copy_height) 
+             && (col + orig_width <= copy_width); @*/
+/*@ensures is_sub_image(orig, orig_width, orig_height,
+                        copy, copy_width, copy_height,
+                        row, col); @*/
+{
+  for(int i = 0; i < orig_height; i++)
+    //@loop_invariant 0 <= i;
+    {
+      for(int j = 0; j < orig_width; j++)
+        //@loop_invariant 0 <= j;
+        {
+          int orig_index = get_index(i, j, orig_width, orig_height);
+          int copy_index = get_index(row + i, col + j, copy_width, copy_height);
+          copy[copy_index] = clone_pixel(orig[orig_index]);
+        }
+    }
+  return;
+}
+
+// This function will clone the individual pixel
+// by using the functions from pixel
+pixel clone_pixel(pixel p)
+//@ensures pixel_equal(\result, p);
+{
+  return make_pixel(get_alpha(p), get_red(p),  get_green(p), get_blue(p));
+}
+
+// Checks if the pixels are equal to the new pixel values
+// This is helpful function that is used in the functions to check
+// for safety reasons
+bool pixel_equal(pixel p, pixel q)
+{
+  return
+    (get_alpha(p) == get_alpha(q)) &&
+    (get_red(p)   == get_red(q))   &&
+    (get_green(p) == get_green(q)) &&
+    (get_blue(p)  == get_blue(q));
+}
+
+// Checks the copied image to see if it is the same image "sub-image"
+// of the original image
+bool is_sub_image(pixel_t[] orig, int orig_width, int orig_height,
+                  pixel_t[] copy, int copy_width, int copy_height,
+                  int row, int col)
+//@requires is_valid_imagesize(orig_width, orig_height);
+//@requires is_valid_imagesize(copy_width, copy_height);
+//@requires is_valid_pixel(row, col, copy_width, copy_height);
+//@requires 0 <= row && 0 <= col;
+//@requires \length(orig) == orig_width * orig_height;
+//@requires \length(copy) == copy_width * copy_height;
+/*@requires (row + orig_height <= copy_height)
+            && (col + orig_width <= copy_width); @*/
+{
+  for(int i = 0; i < orig_height; i++)
+    //@loop_invariant 0 <= i;
+    {
+      for(int j = 0; j < orig_width; j++)
+        //@loop_invariant 0 <= j;
+        {
+          int orig_index = get_index(i, j, orig_width, orig_height);
+          int copy_index = get_index(i + row, j + col, copy_width, copy_height);
+          if(pixel_equal(orig[orig_index], copy[copy_index]) == false) {
+            return false;
+          }
+        }
+    }
+  return true;
+}

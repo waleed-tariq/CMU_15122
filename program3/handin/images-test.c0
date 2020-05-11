@@ -1,0 +1,43 @@
+#use <conio>
+#use <img>
+
+
+int main() {
+
+  // Create a few small images manually
+
+
+  // Load some large images -- here's an example
+  image_t g5 = image_load("images/g5.png");
+  if (g5 == NULL) error("Could not load source image");
+  int width = image_width(g5);
+  int height = image_height(g5);
+  pixel_t[] inpixels = image_data(g5);
+  print("Loaded image.  Dimensions are ");
+  printint(width);
+  print(" by ");
+  printint(height);
+  println(".");
+
+
+  // Test the functions you implemented in imageutil.c0
+  assert(!is_valid_imagesize(0,1));
+  assert(is_valid_imagesize(1,1));
+
+  assert(get_row(0,2,2) == 0);
+  assert(get_column(1,2,2) == 1);
+
+  // Test rotate
+  assert(rotate_index(0, 3, 2, 90) == 4);
+  assert(rotate_index(5, 3, 2, 180) == 0);
+  assert(rotate_index(5, 3, 2, 270) == 4);
+
+
+  // Test apply_mask
+  assert(is_within_image(2, 0, 2, 2) == false);
+  assert(average_intensity(make_pixel(0xFF, 3, 3, 3)) == 3);
+
+
+  println("All tests passed!");
+  return 0;
+}
