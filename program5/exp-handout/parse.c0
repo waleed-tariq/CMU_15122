@@ -1,0 +1,167 @@
+#use <string>
+#use <conio>
+#use <parse>
+
+bool is_precstack(dict_t D, stack_t S)
+//@requires D != NULL && S != NULL;
+{
+  stack_t tmp = stack_new();
+  // creating a large temporary start value to compare with the first operator
+  int comp = 500;
+  // creating a boolean value that will hold the final return
+  bool res = true;
+  while (!stack_empty(S))
+  {
+    string oper = pop(S);
+    push(tmp, oper);
+    int i = dict_lookup(D, oper);
+    // this if statement will do the checking of each operators precedence
+    // if the previous precedence is less than or equal to the new operators
+    // precedence, then the boolean value will be set to false
+    if (comp <= i) res = false;
+    comp = i;
+  }
+  // returning the original stack to its original values
+  while (!stack_empty(tmp))
+  {
+    push(S, pop(tmp));
+  }
+  return res;
+}
+
+queue_t parse(dict_t D, queue_t input)
+//@requires D != NULL && input != NULL;
+//@ensures \result == NULL || queue_empty(input);
+{
+  stack_t tmp = stack_new();
+  queue_t res = queue_new();
+  // this is setting the initial precedence to a value that it can never be
+  // to initialize the variable that will be replaced by the actual precedence
+  int precedence = -1;
+  // this will check to see if an integer is repeated
+  int integer_check = 0;
+  // checking to see if the input queue is empty
+  if (queue_empty(input)) return NULL;
+
+  // loop to go through the input and do all of the operations and checks
+  while(!queue_empty(input))
+  {
+    string tok = deq(input);
+    
+    // first check to see if the parsed token is a number
+    if (parse_int(tok,10) != NULL)
+    {
+      enq(res, tok);
+      integer_check++;
+    }
+    // if the parsed token is an operator and the tmp stack is empty
+    else if(parse_int(tok,10) == NULL && stack_empty(tmp)){
+      integer_check = 0;
+      
+      // insert chunk of code to check to see if an operator is legal
+      if (dict_lookup(D, tok) == -1) return NULL;
+      
+      // setting the variable precedence to that operators value
+      precedence = dict_lookup(D, tok);
+      push(tmp, tok);
+    }
+    
+    // if the parsed token is an operator and the tmp stack is not empty
+    else if (parse_int(tok,10) == NULL && !stack_empty(tmp))
+    {
+      integer_check = 0;
+      
+      // insert chunk of code to check to see if an operator is legal
+      if (dict_lookup(D, tok) == -1) return NULL;
+      
+      // if the previous operators precedence is less than the new operators,
+      // then we can set the new precedence and push the token to the stack
+      if (precedence < dict_lookup(D, tok)) 
+      {
+        precedence = dict_lookup(D,tok);
+        push(tmp, tok);
+      } 
+
+      // if the precedence is equal then we must return null
+      else if (precedence == dict_lookup(D, tok))
+      {
+        enq(res, pop(tmp));
+        push(tmp, tok);
+      }
+
+      // if the precedence of the top of the stack token is larger than the 
+      // new operators precedence, then we go into this if statement
+      else if (precedence > dict_lookup(D, tok))
+      {
+        // need to look through the stack and find where to place this
+        // new operator i need to compare it with the other items
+        // if it's precedence is less than the stack item then i must 
+        // enqueue the popped stack item to res
+        // if it's precedence is greater than the stack item then i must
+        // push it onto the stack after pushing the originally popped stack
+        // item therefore setting the order properly
+        // if the stack becomes empty while comparing then i must insert the
+        // operator into the stack and end this loop
+
+        precedence = dict_lookup(D, tok);
+
+        // being in this else statement means that the top of the stack must
+        // be enqueued to the queue
+        enq(res, pop(tmp));
+
+        bool loop = true;
+
+        // this loop will be checking the precedence of the stack items
+        // in comparison with the new operator, until it will find the operator
+        // that is greater than the incoming operator
+        while (loop)
+        {
+          if (stack_empty(tmp)) 
+          {
+            push(tmp, tok);
+            loop = false;
+          }
+          else
+          {
+            string popped = pop(tmp);
+            if (precedence < dict_lookup(D, popped))
+            {
+              enq(res, popped);
+            }
+            else if (precedence == dict_lookup(D, popped))
+            {
+              enq(res, popped);
+              push(tmp, tok);
+              loop = false;
+            }
+            else
+            {
+              push(tmp, popped);
+              push(tmp, tok);
+              loop = false;  
+            } 
+          }  
+          
+          
+        }
+        assert(loop == false);
+      }
+
+    }
+    if (integer_check >= 2) return NULL;
+  }
+
+  // if the tmp stack is not empty then we must dump all of the remaining 
+  // contents into the final result queue
+  if (!stack_empty(tmp))
+  {
+    while (!stack_empty(tmp))
+    {
+      enq(res, pop(tmp));
+    }
+    
+  }
+
+  return res;
+
+}

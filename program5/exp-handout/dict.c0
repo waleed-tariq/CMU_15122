@@ -1,0 +1,114 @@
+/*
+ * Interface for dictionaries
+ *
+ * 15-122 Principles of Imperative Computation
+ */
+
+#use <string>
+#use <conio>
+#use <parse>
+
+/* Implementation of dictionaries */
+typedef struct dict_header dict;
+/* insert your implementation code between HERE */
+
+struct dict_header {
+  string[] operator;
+  int length;
+};
+
+// Taken from ssa lecture notes
+bool is_array_expected_length(string[] A, int len) {
+  //@assert \length(A) == len;
+  return true;
+}
+
+bool is_dict(dict* D)
+{
+  return D != NULL
+    && is_array_expected_length(D->operator, D->length);
+}
+
+int dict_len(dict* D)
+//@ensures \result >= 0;
+//@ensures \result == \length(D->operator);
+{
+  return D->length;
+}
+
+dict* dict_new(string[] A, int size)
+//@ensures \result == NULL || is_dict(\result);
+{
+  dict* D = alloc(dict);
+  D->operator = A;
+  D->length = size;
+
+  int total_tokens = 0;
+  for (int i = 0; i<size; i++){
+    string s = A[i];
+    int token_count = num_tokens(s);
+    total_tokens += token_count;
+  }
+
+  string[] all_oper = alloc_array(string, total_tokens);
+  int tok = 0;
+  int pos_array = 0;
+  for (int i = 0; i < size; i++){
+    string x = A[i];
+    tok = num_tokens(x);
+    string[] C = parse_tokens(x);
+    
+    int j = 0;
+    for (j; j < tok; j++) all_oper[j + pos_array] = C[j];
+    pos_array += j;
+  }
+
+  for (int w = 0; w < total_tokens - 1; w++){
+      for (int z = w+1; z < total_tokens; z++){
+        if (string_equal(all_oper[w], all_oper[z])) {
+          return NULL;
+        }
+      }
+  }
+  
+  
+  return D;
+}
+
+int dict_lookup(dict* D, string oper)
+//@requires is_dict(D);
+//@ensures \result == -1 || \result >= 0;
+{
+  for (int i = 0; i < D->length; i++)
+  {
+    string s = D->operator[i];
+
+    int toks = num_tokens(s);
+    string[] B = parse_tokens(s);
+
+    for (int j = 0; j < toks; j++)
+    //@loop_invariant 0 <= j && j <= toks;
+    {
+      if (string_equal(oper, B[j])) return i;
+    }
+  }
+  return -1;
+}
+
+/* and HERE */
+typedef dict* dict_t;
+
+
+/* Interface of dictionaries (leave this alone) */
+
+// typedef ______* dict_t;
+
+// Returns NULL if the input array has the same operator twice
+dict_t dict_new(string[] A, int n)
+  /*@requires \length(A) == n; @*/
+  /*@requires is_infix_array(A, n); @*/ ;
+
+// Returns -1 if no definition is found
+int dict_lookup(dict_t D, string oper)
+  /*@requires D != NULL; @*/
+  /*@ensures \result >= -1; @*/ ;

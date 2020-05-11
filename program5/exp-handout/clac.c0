@@ -1,0 +1,122 @@
+#use <string>
+
+void eval(istack_t S, queue_t Q)
+//@requires S != NULL && Q != NULL;
+//@ensures queue_empty(Q);
+{
+
+  while (!queue_empty(Q))
+  {
+    string x = deq(Q);
+
+    // check if the string is an integer
+    if (parse_int(x,10) != NULL)
+    {
+      ipush(S, *parse_int(x,10));
+    }
+
+    // check if the string is the multiplication operator
+    else if (string_equal(x, "*"))
+    {
+      if (istack_empty(S)) error("Stack is empty");
+      int first = ipop(S);
+      if (istack_empty(S)) error("Stack is empty");
+      int second = ipop(S);
+      int res = first * second;
+      ipush(S, res);
+    }
+
+    // check if the string is the division operator
+    else if (string_equal(x, "/"))
+    {
+      if (istack_empty(S)) error("Stack is empty");
+      int first_div = ipop(S);
+      if (istack_empty(S)) error("Stack is empty");
+      int second_div = ipop(S);
+      if (first_div == 0){
+        error("Division by 0 not allowed");
+      }
+      if (second_div == -2147483648 && first_div == -1) 
+      {
+        error("Dividing int min by -1");
+      }
+      int res_div = second_div / first_div;
+      ipush(S, res_div);
+    }
+
+    // check if the string is the mod operator
+    else if (string_equal(x, "%"))
+    {
+      if (istack_empty(S)) error("Stack is empty");
+      int first_mod = ipop(S);
+      if (istack_empty(S)) error("Stack is empty");
+      int second_mod = ipop(S);
+      if (first_mod == 0){
+        error("Mod by 0 not allowed");
+      }
+      if (second_mod == -2147483648 && first_mod == -1) 
+      {
+        error("Modding int min by -1");
+      }
+      int res_mod = second_mod / first_mod;
+      if (res_mod >= 2147483647)
+        error("Not an integer");
+      ipush(S, res_mod);
+    }
+
+    // check if the string is the subtraction operator
+    else if (string_equal(x, "-"))
+    {
+      if (istack_empty(S)) error("Stack is empty");
+      int first = ipop(S);
+      if (istack_empty(S)) error("Stack is empty");
+      int second = ipop(S);
+      int res = second - first;
+      if (res >= 2147483647)
+        error("Not an integer");
+      ipush(S, res);
+    }
+
+    // check if the string is the addition operator
+    else if (string_equal(x, "+"))
+    {
+      if (istack_empty(S)) error("Stack is empty");
+      int first = ipop(S);
+      if (istack_empty(S)) error("Stack is empty");
+      int second = ipop(S);
+      int res = first + second;
+      if (res >= 2147483647)
+        error("Not an integer");
+      ipush(S, res);
+    }
+
+    // check if the string is the exponent operator
+    else if (string_equal(x, "**"))
+    {
+      if (istack_empty(S)) error("Stack is empty");
+      int first = ipop(S);
+      if (first < 0){
+        error("Attempting to raise integer to negative power");
+      }
+      if (istack_empty(S)) error("Stack is empty");
+      int second = ipop(S);
+      int res = second;
+      for (int i = 1; i < first; i++){
+        res *= second;
+      }
+      if (first == 0) res = 1;
+
+      if (res >= 2147483647)
+        error("Not an integer");
+
+      ipush(S, res);
+    }
+    else
+    {
+      error("Given bogus string");
+    }
+  }
+
+  
+  return;
+}
