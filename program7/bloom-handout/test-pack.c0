@@ -1,0 +1,48 @@
+#use <conio>
+
+int main() {
+  // Create a few arrays of integers
+  int[] A = alloc_array(int, 5);
+  A[0] = 0xFF;
+  A[1] = 0xFA;
+  A[2] = 0xAB;
+  A[3] = 0xDD;
+  A[4] = 0x10;
+  int[] B = alloc_array(int, 6);
+  B[0] = 3;
+  B[1] = 1;
+  B[2] = 5;
+  B[3] = 22;
+  B[4] = 32;
+  B[5] = 18;
+  int[] C = alloc_array(int, 4);
+  C[0] = 4;
+  C[1] = 2;
+  C[2] = 8;
+  C[3] = 9;
+  // Using them, test the functions test get_bit and set_bit
+  
+  /*for (int i = 0; i < 32; i++)
+  {
+    bool res = get_bit(A, i);
+    printbool(res);
+  }*/
+  println("\nchanging it up\n");
+  bool check = get_bit(A, 0);
+  assert(check == false);
+  printbool(check);
+
+  println("\nset bit check\n");
+  //set_bit(A, 9);
+  //set_bit(A, 8);
+  set_bit(A, 0);
+
+  println("\nchecking to see if the bit changed\n");
+  bool check2 = get_bit(A, 0);
+  assert(check2 == true);
+  printbool(check2);
+
+
+  println("\nAll tests passed!");
+  return 0;
+}

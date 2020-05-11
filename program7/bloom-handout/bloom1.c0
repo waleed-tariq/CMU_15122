@@ -1,0 +1,81 @@
+#use <string>
+#use <util>
+
+typedef struct bloom_filter bloom;
+struct bloom_filter {
+  bool[] data;
+  int capacity; // capacity == \length(data)
+};
+
+//taken from hash lab
+int hash_mul31(string s)
+{
+  if (string_length(s)==0) return 0;
+  if (string_length(s)== 1) char_ord(string_charat(s, 0));
+  char[] c_array = string_to_chararray(s);
+  int length = string_length(s);
+  int res = 0;
+  for (int i = 0; i<length;i++){
+    res *= 31;
+    char C = c_array[i];
+    res = char_ord(C) + res;
+  }
+  return res;
+}
+
+//taken from dict.c0 program
+bool is_array_expected_length(bool[] A, int len) {
+  //@assert \length(A) == len;
+  return true;
+}
+
+bool is_bloom(bloom* B)
+{
+  return B != NULL && B->capacity > 0
+   && is_array_expected_length(B->data, B->capacity);
+}
+
+bloom* bloom_new(int capacity)
+//@requires capacity > 0;
+//@ensures is_bloom(\result);
+{
+  bloom* B = alloc(bloom);
+  B->capacity = capacity;
+  B->data = alloc_array(bool, capacity);
+
+  return B;
+}
+
+bool bloom_contains(bloom* B, string s)
+//@requires is_bloom(B);
+{
+  int bucket = abs(hash_mul31(s) % B->capacity);
+  return B->data[bucket];
+}
+
+void bloom_add(bloom* B, string s)
+//@requires is_bloom(B);
+//@ensures is_bloom(B);
+//@ensures bloom_contains(B, s);
+{
+  int bucket = abs(hash_mul31(s) % B->capacity);
+  if (B->data[bucket]) return;
+  else B->data[bucket] = true;
+}
+
+
+// interface of bloom1
+
+// typedef ______* bloom_t;
+typedef struct bloom_filter* bloom_t;
+
+bloom_t bloom_new(int capacity)
+  /*@requires capacity > 0; @*/
+  /*@ensures is_bloom(\result); @*/ ;
+
+bool bloom_contains(bloom_t B, string s)
+  /*@requires is_bloom(B); @*/ ;
+
+void bloom_add(bloom_t B, string s)
+  /*@requires is_bloom(B); @*/
+  /*@ensures is_bloom(B);  @*/ ;

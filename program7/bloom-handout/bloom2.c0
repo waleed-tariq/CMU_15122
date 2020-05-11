@@ -1,0 +1,174 @@
+#use <string>
+#use <util>
+
+//taken from hash lab - hash_mul31(s)
+int hash1(string s)
+{
+  if (string_length(s)==0) return 0;
+  if (string_length(s)== 1) char_ord(string_charat(s, 0));
+  char[] c_array = string_to_chararray(s);
+  int length = string_length(s);
+  int res = 0;
+  for (int i = 0; i<length;i++){
+    res *= 31;
+    char C = c_array[i];
+    res = char_ord(C) + res;
+  }
+  return res;
+}
+//taken from hash lab - hash_lcg(s)
+int f(int ord) {
+  return 1664525 * ord + 1013904223;
+}
+
+int hash2(string s) {
+  char[] c_array = string_to_chararray(s);
+  int length = string_length(s);
+  int res = 0;
+  for (int i = 0; i<length; i++){
+    res = f(char_ord(c_array[i]) + res);
+  }
+  return res;
+}
+
+//taken from hash lab - hash_mul32(s)
+/*int hash3(string s)
+{
+  if (string_length(s)==0) return 0;
+  if (string_length(s)== 1) char_ord(string_charat(s, 0));
+  char[] c_array = string_to_chararray(s);
+  int length = string_length(s);
+  int res = 0;
+  for (int i = 0; i<length;i++){
+    res *= 32;
+    char C = c_array[i];
+    res = char_ord(C) + res;
+  }
+  return res;
+}
+*/
+
+// djb2 hashing function
+int hash3(string s)
+{
+  if (string_length(s)==0) return 0;
+  char[] c_array = string_to_chararray(s);
+  int length = string_length(s);
+  int hash = 5381;
+  //int c = 0;
+  for (int i = 0; i<length; i++){
+    char C = c_array[i];
+    hash = ((hash << 5) + hash) + char_ord(C);
+  }
+  return hash;
+}
+
+bool get_bit(int[] A, int i)
+//@requires 0 <= i && i/32 < \length(A);
+{
+  // accessing correct index
+  int res = A[i/32];
+  // get i into the right bucket
+  int bucket = (i % 32);
+  // shift right by the bucket length
+  res = res >> (31 - bucket);
+  // and the res with 1 to see if it is 1 ,then check if it is equal to 1 or not
+  return ((res & 0x1) == 1);
+}
+
+void set_bit(int[] A, int i)
+//@requires 0 <= i && i/32 < \length(A);
+//@ensures get_bit(A, i);
+{
+  // same set up as get_bit, but must or with 1 at end
+  // or the int with an updated version of itself with a 1 at the position i
+
+  int pos = (i % 32);
+  int tmp = A[i/32];
+  int or = 0x1 << (31 - pos);
+  int res = tmp | or;
+  A[i/32] = res;
+}
+
+typedef struct bloom_filter bloom;
+struct bloom_filter {
+  int[] data;
+  int limit; // limit == \length(data);
+};
+
+int roundup(int x)
+{
+  if (x % 32 == 0) return x/32;
+  return (x/32 + x%32);
+}
+
+// taken from dict.c0
+bool is_array_expected_length(int[] A, int len) {
+  //@assert \length(A) == roundup(len);
+  return true;
+}
+
+//basically the same as bloom1.c0
+bool is_bloom(bloom* B)
+{
+  return B != NULL && B->limit > 0
+   && is_array_expected_length(B->data, B->limit);
+}
+
+
+bloom* bloom_new(int limit)
+//@requires limit > 0;
+//@ensures is_bloom(\result);
+{
+  bloom* B = alloc(bloom);
+  B->limit = limit;
+  B->data = alloc_array(int, roundup(limit));
+  return B;
+}
+
+int bucket(bloom* B, string s, int hash_chosen)
+//@requires is_bloom(B);
+{
+  if (hash_chosen == 1) return abs(hash1(s) % B->limit);
+  else if (hash_chosen == 2) return abs(hash2(s) % B->limit);
+  else return abs(hash3(s) % B->limit);
+}
+
+bool bloom_contains(bloom* B, string s)
+//@requires is_bloom(B);
+{
+  // for loop to test all the hash functions
+  for (int i = 1; i < 4; i++)
+  {
+    int bucket = bucket(B, s, i);
+    if (!get_bit(B->data, bucket)) return false;
+  }
+  return true;
+}
+
+void bloom_add(bloom* B, string s)
+//@requires is_bloom(B);
+//@ensures is_bloom(B);
+{
+  for (int i = 1; i < 4; i++)
+  {
+    int bucket = bucket(B, s, i);
+    if (!get_bit(B->data, bucket)) set_bit(B->data, bucket);
+  }
+}
+
+// Interface
+
+// typedef ______* bloom_t;
+typedef struct bloom_filter* bloom_t;
+
+bloom_t bloom_new(int capacity)
+  /*@requires capacity > 0; @*/
+  /*@ensures is_bloom(\result); @*/ ;
+
+bool bloom_contains(bloom_t B, string s)
+  /*@requires is_bloom(B); @*/ ;
+
+void bloom_add(bloom_t B, string s)
+  /*@requires is_bloom(B); @*/
+  /*@ensures is_bloom(B);  @*/ ;

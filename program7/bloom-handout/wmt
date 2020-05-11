@@ -1,0 +1,56 @@
+#use <rand>
+#use <util>
+#use <string>
+#use <conio>
+
+// You are welcome to define helper functions for your tests
+
+int main() {
+  // Create a few bloom filters to test CORRECTNESS: here, focus on raising
+  //      assertion errors on any incorrect implementation of the interface
+
+  bloom_t A = bloom_new(1);
+  assert(A != NULL);
+  
+  bloom_add(A, "hello");
+  // current load factor: 1/1 = 1
+  assert(bloom_contains(A, "hello"));
+  assert(!bloom_contains(A, "goodbye"));
+  bloom_add(A, "waleed");
+  // current load factor: 2/1 = 2
+  // higher chance of false positives -> worst performance
+  assert(bloom_contains(A, "waleed"));
+
+
+
+  println("All correctness tests passed!\n");
+
+  // Create a few boom filters to test PERFORMANCE: this part should
+  //     compute and return a performance score between 0 and 100 that
+  //     assesses how bad or good a bloom filter implementation is
+  
+  int score = 0;
+  bloom_t B = bloom_new(5);
+  // worst case bloom
+  if (bloom_contains(A, "hi")) return 0;
+
+  bloom_add(B, "hello");
+  assert(bloom_contains(B, "hello"))
+  // load factor: 1/5 -> great performance
+  if (bloom_contains("hello")) score += 20;
+  bloom_add(B, "goodbye");
+  assert(bloom_contains(B, "goodbye"));
+  // load factor: 2/5
+  if (!bloom_contains(B, "good")) score += 20;
+  bloom_add(B, "waleed");
+  bloom_add(B, "tariq");
+  bloom_add(B, "no");
+  // load factor: 5/5 -> not good
+  if (bloom_contains(B, "no")) score += 5;
+
+  
+
+
+  println("Returning the performance score.");
+  return score;  // MODIFY ME
+}
