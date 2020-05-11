@@ -1,0 +1,71 @@
+Notes on some useful C idioms (by William Lovas)
+
+This file describes a number of C idioms you may find useful in your
+implementation of the C0VM, most of which we haven't had the
+opportunity to present in detail in class.
+
+
+1. Structs that aren't pointers
+
+    In C0 and in much of our C programming, we have accessed structs
+    through pointers almost exclusively.  For example, we would write
+
+        typedef struct stack * stack;
+        struct stack {
+            list top;
+        };
+
+        ...
+        stack S = stack_new();
+        ...
+        ... S->top ...
+
+    Sometimes it is convenient to access structs directly, though,
+    like when they're stored in an array.  To access a field f of a
+    struct expression e, one uses the syntax 'e.f'.
+
+        stack stack_array[] = ...
+
+        ... stack_array[i].top ...
+
+    In fact, the familiar notation 'p->f' for accessing a struct field
+    through a pointer p is just syntactic sugar for '(*p).f', and
+    since array indexing is just syntactic sugar for pointer
+    arithmetic, the above expression really amounts to
+    '(*(stack_array+i)).top', or (stack_array+i)->top.
+
+    Accessing structs directly will be useful when dealing with
+    various pools.
+
+2. Coping with unused variables
+
+    When compiling with -Wall -Wextra, a warning will be generated if any
+    variable is unused, and when compiling with -Werror, that warning turns
+    into an error:
+
+        cc1: warnings being treated as errors
+        foo.c: In function 'bar':
+        foo.c:12: error: unused variable 'x'
+
+    Sometimes this indicates a bug in your program, but sometimes it just
+    indicates that you're program is incomplete, and you may want to compile
+    regardless in order to test the partial functionality you have written
+    thus far.  You might think to suppress the error simply by mentioning
+    the unused variable on a line by itself:
+
+        x;
+
+    but that just triggers another warning/error:
+
+        cc1: warnings being treated as errors
+        foo.c: In function 'bar':
+        foo.c:12: error: statement with no effect
+
+    The proper solution is to mention the unused variable on a line by itself
+    but additionally indicate your intent to ignore its value by casting it
+    to void;
+
+        (void) x;
+
+    That should eliminate the warning and get you back on track to compiling
+    and testing your code.
