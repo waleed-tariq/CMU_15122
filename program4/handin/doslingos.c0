@@ -1,0 +1,158 @@
+bool all_distinct(string[] vocab, int v){
+    return true;
+}
+
+int count_vocab(string[] vocab, int[] freq, int v,
+				string corpus,
+				bool fast)
+//@requires v == \length(vocab) && v == \length(freq);
+//@requires is_sorted(vocab, 0, v);
+//@requires all_distinct(vocab, v);
+//@ensures 0 <= \result;
+{
+  bundle_t tweet_words = read_words(corpus);
+  int length_of_tweet = string_bundle_length(tweet_words);
+  string[] tweet_array = string_bundle_array(tweet_words);
+  int i = 0;
+  int count = 0;
+  for (i = 0; i < length_of_tweet; i++)
+  //@loop_invariant 0 <= i && i <= length_of_tweet;
+  //@loop_invariant v == \length(vocab) && v == \length(freq);
+  {
+    int index;
+    if (fast){
+		index = binsearch(tweet_array[i], vocab, v);
+		}
+		else 
+		//@assert fast == false;
+		{
+			index = linsearch(tweet_array[i], vocab, v);
+		}
+		if (index != -1){
+		  freq[index] = freq[index] + 1;
+		}
+		else
+		//@assert index == -1;
+		{
+	 		count = count + 1;
+		}
+  }
+  return count;
+}
+
+bool le_seg_int(int n, int[] A, int lo, int hi)
+//@requires 0 <= lo && lo <= hi && hi <= \length(A);
+{
+  for (int i = lo; i < hi; i++)
+    //@loop_invariant lo <= i && i <= hi;
+    {
+      if (n > A[i]) {
+        return false;
+      }
+    }
+  return true;
+}
+
+bool le_segs_int(int[] A, int lo1, int hi1, int[] B, int lo2, int hi2)
+//@requires 0 <= lo1 && lo1 <= hi1 && hi1 <= \length(A);
+//@requires 0 <= lo2 && lo2 <= hi2 && hi2 <= \length(B);
+{
+  for (int i = lo1; i < hi1; i++)
+    //@loop_invariant lo1 <= i && i <= hi1;
+    {
+      if (!le_seg_int(A[i], B, lo2, hi2)) {
+        return false;
+      }
+    }
+  return true;
+}
+
+void merge(string[] vocab, int[] freq, int lo, int mid, int hi)
+//@requires 0 <= lo && lo < mid && mid < hi && hi <= \length(vocab);
+//@requires is_sorted_int(freq, lo, mid) && is_sorted_int(freq, mid, hi);
+//@requires \length(vocab) == \length(freq);
+//@ensures is_sorted_int(freq, lo, hi);
+{
+	// create temporary arrays for both vocab and freq
+	string[] vocab_temp = alloc_array(string, hi - lo);
+	int[] freq_temp = alloc_array(int, hi - lo);
+
+	int i = lo;
+	int m = mid;
+	int k = 0;
+
+	while (i < mid && m < hi) 
+	//@loop_invariant lo <= i && i <= mid;
+	//@loop_invariant mid <= m && m <= hi;
+	////@loop_invariant is_sorted_int(freq, 0, k);
+	//@loop_invariant le_segs_int(freq_temp, 0, k, freq, i, mid);
+  //@loop_invariant le_segs_int(freq_temp, 0, k, freq, m, hi);
+  //@loop_invariant k == i - lo + m - mid && 0 <= k && k < hi;
+	{
+		if (freq[i] <= freq[m]){
+			freq_temp[k] = freq[i];
+			vocab_temp[k] = vocab[i];
+			i++;
+		}
+		else 
+		//@assert freq[i] > freq[m];
+		{
+			freq_temp[k] = freq[m];
+			vocab_temp[k] = vocab[m];
+			m++;
+		}
+		k++;
+	}
+
+	while (i < mid)
+	//@loop_invariant lo <= i && i <= mid;
+	//@loop_invariant 0 <= k && k <= hi;
+	{
+		freq_temp[k] = freq[i];
+		vocab_temp[k] = vocab[i];
+		i++;
+		k++;
+	}
+
+	while (m < hi) 
+	//@loop_invariant lo <= m && m <= hi;
+	//@loop_invariant 0 <= k && k <= hi;
+	{
+		freq_temp[k] = freq[m];
+		vocab_temp[k] = vocab[m];
+		m++;
+		k++;
+	}
+
+	// updating freq and vocab arrays
+	for (k = 0; k < hi - lo; k++) 
+	//loop_invariant 0 <= k && k <= hi - lo;
+	{
+    freq[lo + k] = freq_temp[k];
+    vocab[lo + k] = vocab_temp[k];
+  }
+
+  return;
+}
+
+void merge_sort(string[] vocab, int[] freq, int lo, int hi)
+//@requires 0 <= lo && lo <= hi && hi <= \length(vocab);
+//@requires \length(vocab) == \length(freq);
+//@ensures is_sorted_int(freq, lo, hi);
+{
+	if (hi - lo <= 1) return;
+	int mid = lo + (hi - lo)/2;
+	//@assert lo < mid && mid < hi;
+	merge_sort(vocab, freq, lo, mid);
+	merge_sort(vocab, freq, mid, hi);
+	merge(vocab, freq, lo, mid, hi);
+	return;
+}
+
+void sort_by_freq(string[] vocab, int[] freq, int v)
+//@requires v == \length(vocab) && v == \length(freq);
+//@ensures is_sorted_int(freq, 0, v);
+{
+	merge_sort(vocab, freq, 0, v);
+	return;
+}

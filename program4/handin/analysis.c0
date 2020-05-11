@@ -1,0 +1,135 @@
+#use <args>
+#use <conio>
+
+void print_most_common_words(string[] vocab, int[] freq, int v, int n)
+//@requires \length(vocab) == \length(freq);
+//@requires \length(vocab) == v;
+//@requires is_sorted_int(freq, 0, v);
+//@requires v >= n;
+{
+
+	sort_by_freq(vocab, freq, v);
+  
+	print("The four most common words in the text corpus are: ");
+	print("\n");
+
+	for (int i = 0; i < n; i++)
+	{
+		printint(i+1);
+		print(". ");
+		print(vocab[v - i - 1]);
+		print(" (appears ");
+		printint(freq[v - i - 1]);
+		print(" times)");
+		print("\n");
+	}
+	return;
+}
+
+void print_word_frequency(string[] vocab, int[] freq, int v)
+//@requires \length(vocab) == \length(freq);
+//@requires \length(vocab) == v;
+{
+	print("These words appeared 82 times in the text corpus: ");
+
+	for (int i = 0; i < v; i++)
+  //@loop_invariant 0 <= i && i <= v;
+  {
+    if (freq[i] == 82)
+      println(vocab[i]);
+      //print("\n");
+  }
+  return;
+}
+
+void smallest_frequency(string[] vocab, int[] freq, int v)
+//@requires \length(vocab) == \length(freq);
+//@requires \length(vocab) == v;
+//@requires is_sorted_int(freq, 0, v);
+{
+	print("In this corpus, there are no words with frequency ");
+	int counter = 0;
+  int i = 1;
+  int j = 1;
+  int answer1 = 0;
+  int answer2 = 0;
+  while (counter < 2 && i < v)
+  //@loop_invariant 0 <= counter && counter <= 2;
+  //@loop_invariant 0 <= i && i <= v;
+  {
+    if (freq[i] - freq[i - 1] > 1 && answer1 == 0)
+    {
+      answer1 = freq[i-1]+1;
+      counter++;
+    }
+    else if (freq[i] - freq[i - 1] > 1 && answer1 != 0)
+    {
+      answer2 = freq[i-1]+1;
+      counter++;
+    }
+    i++;
+	}
+	printint(answer1);
+	print(" or ");
+	printint(answer2);
+  print(" in the corpus.");
+}
+
+void frequency_comparison(int[] freq, int v)
+//@requires \length(freq) == v;
+//@requires is_sorted_int(freq, 0, v);
+{
+	print("In this corpus, there are ");
+	
+	int count = 0;
+	for(int i = 0; i < v-1; i++)
+	{
+		if (freq[i] < freq[i+1])
+			count++;
+	}
+	printint(count);
+	print(" times that a frequency f has strictly fewer words at that frequency");
+	print(" than frequency f+1.");
+}
+
+void run_tests(string[] argv)
+{
+	bundle_t vocab_bundle = read_words(argv[0]);
+  string[] dictionary = string_bundle_array(vocab_bundle);
+  int v = string_bundle_length(vocab_bundle);
+  int[] freq = alloc_array(int, v);
+  for (int i = 0; i < v; i++)
+  //@loop_invariant 0 <= i && i <= v;
+  {
+    freq[i] = 0;
+  }
+
+  count_vocab(dictionary, freq, v, argv[1], true);
+
+  print_most_common_words(dictionary, freq, v, 4);
+
+  print("\n");
+
+  print_word_frequency(dictionary, freq, v);
+
+  print("\n");
+
+  smallest_frequency(dictionary, freq, v);
+
+  print("\n");
+
+  frequency_comparison(freq, v);
+
+  print("\n");
+}
+
+int main() 
+{
+	args_t args = args_parse();
+  int argc = args->argc;
+  string[] argv = args->argv;
+  run_tests(argv);
+
+  return 0;
+
+}

@@ -1,0 +1,76 @@
+#use <conio>
+#use <parse>
+
+// You are welcome to define helper functions for your tests
+
+int main() {
+  // Create a few vocabularies and the corresponding frequences by hand
+  
+  string[] vocab = parse_tokens("his is of out");
+
+  assert(is_sorted(vocab, 0, 4));
+  assert(count_vocab(vocab, alloc_array(int, 4), 4, "texts/scott_tweet.txt",
+                     false)
+         == 2);
+
+  /* tests for method sort_by_freq */
+  int[] freq = alloc_array(int, 4);
+  freq[0] = 2;
+  freq[1] = 3;
+  freq[2] = 1;
+  freq[3] = 0;
+  sort_by_freq(vocab, freq, 4);
+  assert(is_sorted_int(freq, 0, 4));
+  assert(string_equal(vocab[0], "out"));
+  assert(string_equal(vocab[1], "of"));
+  assert(string_equal(vocab[2], "his"));
+  assert(string_equal(vocab[3], "is"));
+
+
+  string[] vocab1 = parse_tokens("bye hello is waleed");
+
+  string words = "test_vocab.txt";
+
+  int[] freq1 = alloc_array(int, 4);
+  for (int i = 0; i < 4; i++) freq1[i] = 0;
+  assert(count_vocab(vocab1, freq1, 4, words, true) == 5);
+  assert(freq1[0] == 0 && freq1[1] == 2 && freq1[2] == 1 && freq1[3] == 2);
+
+  freq1[0] = 0;
+  freq1[1] = 2;
+  freq1[2] = 1;
+  freq1[3] = 2;
+  sort_by_freq(vocab1, freq1, 4);
+  assert(is_sorted_int(freq1, 0, 4));
+  assert(string_equal(vocab1[0], "bye"));
+  assert(string_equal(vocab1[1], "is"));
+  assert(string_equal(vocab1[2], "hello"));
+  assert(string_equal(vocab1[3], "waleed"));
+
+  string[] vocab2 = parse_tokens("apple banana carrot dog");
+  assert(count_vocab(vocab2, alloc_array(int, 4), 4, words, true) == 10);
+
+  string[] vocab3 = parse_tokens("up waleed with xenon");
+  assert(count_vocab(vocab3, alloc_array(int, 4), 4, words, false) == 8);
+
+  string[] vocab4 = parse_tokens("dont i like strawberries");
+  assert(count_vocab(vocab4, alloc_array(int, 4), 4, words, false) == 7);
+
+
+  string same = "edge_case.txt";
+
+  int[] freq2 = alloc_array(int, 1);
+  for (int i = 0; i < 1; i++) freq2[i] = 0;
+  string[] vocab5 = parse_tokens("edge");
+  assert(count_vocab(vocab5, freq2, 1, same, true) == 0);
+
+  freq2[0] = 0;
+  
+  sort_by_freq(vocab5, freq2, 1);
+  assert(is_sorted_int(freq2, 0, 1));
+  assert(string_equal(vocab5[0], "edge"));
+
+
+  println("All tests passed!");
+  return 0;
+}
