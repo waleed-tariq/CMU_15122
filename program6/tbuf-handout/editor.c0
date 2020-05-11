@@ -1,0 +1,110 @@
+/*
+ * Augment doubly linked lists with row and column information.
+ *
+ * 15-122 Principles of Imperative Computation */
+
+/*** Interface ***/
+
+typedef struct editor_header editor;
+struct editor_header {
+  tbuf* buffer;
+  int row;
+  int col;
+};
+
+/*** Implementation ***/
+
+bool is_editor(editor* E)
+{
+  return E != NULL && is_tbuf(E->buffer) && E->col == tbuf_col(E->buffer)
+  && E->row == tbuf_row(E->buffer);
+}
+
+editor* editor_new()
+//@ensures is_editor(\result);
+{
+  editor* e = alloc(editor);
+  e->buffer = tbuf_new();
+  int row = 1;
+  int col = 0;
+  e->row = row;
+  e->col = col;
+  return e;
+}
+
+void editor_forward(editor* E)
+//@requires is_editor(E);
+//@requires E->row >= 1 && E->row >= 0;
+{
+  if (E->buffer->cursor == E->buffer->end) return;
+  if (string_equal(string_fromchar(E->buffer->cursor->data), "\n"))
+  {
+    E->col = 0;
+    E->row = E->row + 1;
+    tbuf_forward(E->buffer);
+  }
+  else
+  {
+    tbuf_forward(E->buffer);
+    E->col = E->col + 1;
+  }
+
+}
+
+void editor_backward(editor* E)
+//@requires is_editor(E);
+//@requires E->row >= 1 && E->row >= 0;
+{
+  if (E->buffer->cursor->prev == E->buffer->start) return;
+  if (string_equal(string_fromchar(E->buffer->cursor->prev->data), "\n"))
+  {
+    E->col = tbuf_col(E->buffer);
+    E->row--;
+    tbuf_backward(E->buffer);
+  }
+  else
+  {
+    E->col--;
+    tbuf_backward(E->buffer);
+  }
+  if (string_equal(string_fromchar(E->buffer->cursor->data), "\n"))
+  {
+    E->col = tbuf_col(E->buffer);
+  }
+}
+
+void editor_insert(editor* E, char c)
+//@requires is_editor(E);
+//@requires E->row >= 1 && E->row >= 0;
+{
+  if (string_equal(string_fromchar(c), "\n"))
+  {
+    tbuf_insert(E->buffer, c);
+    E->col = 0;
+    E->row = E->row + 1;
+  }
+  else
+  {
+    tbuf_insert(E->buffer, c);
+    E->col = E->col + 1;
+  }
+}
+
+void editor_delete(editor* E)
+//@requires is_editor(E);
+//@requires E->row >= 1 && E->row >= 0;
+{
+  if (E->buffer->cursor->prev == E->buffer->start) return;
+  if (string_equal(string_fromchar(E->buffer->cursor->prev->data), "\n"))
+  {
+    tbuf_delete(E->buffer);
+    E->row = E->row - 1;
+    E->col = tbuf_col(E->buffer);
+  }
+  else
+  {
+    tbuf_delete(E->buffer);
+    E->col = E->col - 1;
+  }
+}
+
